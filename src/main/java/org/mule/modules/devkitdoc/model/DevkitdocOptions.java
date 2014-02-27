@@ -26,7 +26,7 @@ import org.codehaus.jackson.map.annotate.JsonSerialize;
     "required",
     "unique"
 })
-public class Options {
+public class DevkitdocOptions {
 
     @JsonProperty("type")
     private String type;

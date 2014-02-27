@@ -36,7 +36,7 @@ public class DevkitdocMetadata {
     @JsonProperty("instance")
     private String instance;
     @JsonProperty("options")
-    private Options options;
+    private DevkitdocOptions options;
     @JsonProperty("_index")
     private Object _index;
     
@@ -63,12 +63,12 @@ public class DevkitdocMetadata {
     }
 
     @JsonProperty("options")
-    public Options getOptions() {
+    public DevkitdocOptions getOptions() {
         return options;
     }
 
     @JsonProperty("options")
-    public void setOptions(Options options) {
+    public void setOptions(DevkitdocOptions options) {
         this.options = options;
     }
 

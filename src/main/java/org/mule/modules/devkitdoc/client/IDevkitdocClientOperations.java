@@ -56,13 +56,12 @@ public interface IDevkitdocClientOperations {
 	 * <p>
 	 * This will call internally query(entity, jsonQuery, 20, 0); Meaning get the first 20 elements of the first page.
 	 * 
-	 * @param entity The ID of the entity
-	 * @param jsonQuery The Query to be performed in JSON format
+	 * @param jsonQuery The Query to be performed in JSON format. Check the service for Query Syntax
 	 * @return {@link List} of {@link Map} with the entities. Each Map will be interpreted in Studio using the type generated from the MetaData
 	 * @throws DevkitdocConnectorSessionException If the service responds with a 401 (Unauthorized) it will throw this exception. <b>Note:</b> 403 is not considered as SessionException
 	 * @throws DevkitdocConnectorException If some error occurred in the service
 	 */
-	public List<Map<String, Object>> query(String entity, String jsonQuery) 
+	public List<Map<String, Object>> query(String jsonQuery) 
 			throws DevkitdocConnectorSessionException, DevkitdocConnectorException;
 	
 	

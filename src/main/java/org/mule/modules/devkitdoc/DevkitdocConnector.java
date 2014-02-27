@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.mule.api.ConnectionException;
+import org.mule.api.ConnectionExceptionCode;
 import org.mule.api.annotations.Connect;
 import org.mule.api.annotations.ConnectionIdentifier;
 import org.mule.api.annotations.Connector;
@@ -22,6 +23,9 @@ import org.mule.api.annotations.InvalidateConnectionOn;
 import org.mule.api.annotations.MetaDataKeyRetriever;
 import org.mule.api.annotations.MetaDataRetriever;
 import org.mule.api.annotations.Processor;
+import org.mule.api.annotations.Query;
+import org.mule.api.annotations.QueryOperator;
+import org.mule.api.annotations.QueryTranslator;
 import org.mule.api.annotations.ValidateConnection;
 import org.mule.api.annotations.display.Password;
 import org.mule.api.annotations.param.ConnectionKey;
@@ -29,9 +33,11 @@ import org.mule.api.annotations.param.Default;
 import org.mule.api.annotations.param.MetaDataKeyParam;
 import org.mule.common.metadata.MetaData;
 import org.mule.common.metadata.MetaDataKey;
+import org.mule.common.query.DsqlQuery;
 import org.mule.modules.devkitdoc.client.DevkitdocClient;
 import org.mule.modules.devkitdoc.exception.DevkitdocConnectorException;
 import org.mule.modules.devkitdoc.exception.DevkitdocConnectorSessionException;
+import org.mule.modules.devkitdoc.transformer.DevkitdocQueryVisitor;
 
 /**
  * Devkit Documentation Connector
@@ -54,13 +60,26 @@ public class DevkitdocConnector
     	connected = false;
     	connectionLock = new Object();
     }
-    
+
     @Connect
     public void connect(@ConnectionKey String host, @ConnectionKey String username, @ConnectionKey @Password String password) throws ConnectionException  {
     	synchronized(connectionLock) {
     		if (!connected) {
     			// Initialize client
     			clients1 = new DevkitdocClient(host, "s1");
+    			
+    			/* 
+    			 * Try to perform an operation to really test that the service is working
+    			 * 
+    			 * Note: this method can be invoked also from Studio in the Global Configuration with the "Test Connection"
+    			 * 		 so we have to hit the service in this method to know if it is really working
+    			 */
+    			try {
+    				metadataKeys();
+    			} catch (DevkitdocConnectorException e) {
+    				throw new ConnectionException(ConnectionExceptionCode.UNKNOWN, "", "Can not connect to the service", e);
+    			}
+    			
     			connected = true;
     		}
     	}
@@ -132,9 +151,18 @@ public class DevkitdocConnector
     
     @Processor
     @InvalidateConnectionOn(exception = DevkitdocConnectorSessionException.class)
-    public List<Map<String, Object>> query(@MetaDataKeyParam String entity, @Default("#[payload]") String jsonQuery) 
+    public List<Map<String, Object>> query(@Query(disabledOperators = {QueryOperator.OR}, orderBy = false) String query) 
 			throws DevkitdocConnectorSessionException, DevkitdocConnectorException {
     	
-    	return clients1.query(entity, jsonQuery);
+    	return clients1.query(query);
+    }
+    
+    @QueryTranslator
+    public String translateDSQLToNativeQueryLanguage(DsqlQuery dsql) {
+    	
+    	// Transform the DsqlQuery in a String (Native Query)
+    	DevkitdocQueryVisitor devkitdocQueryVisitor = new DevkitdocQueryVisitor();
+    	dsql.accept(devkitdocQueryVisitor);
+    	return devkitdocQueryVisitor.toString();
     }
 }

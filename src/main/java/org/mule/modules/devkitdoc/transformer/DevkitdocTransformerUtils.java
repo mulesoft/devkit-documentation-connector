@@ -21,15 +21,15 @@ import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.type.JavaType;
 import org.mule.modules.devkitdoc.exception.DevkitdocConnectorException;
 
-public class TransformerUtils {
+public class DevkitdocTransformerUtils {
 
 	private ObjectMapper objectMapper;
 	
-	public TransformerUtils() {
+	public DevkitdocTransformerUtils() {
 		objectMapper = new ObjectMapper();
 	}
 	
-	public TransformerUtils(ObjectMapper objectMapper) {
+	public DevkitdocTransformerUtils(ObjectMapper objectMapper) {
 		this.objectMapper = objectMapper;
 	}
 	
@@ -53,6 +53,18 @@ public class TransformerUtils {
 		try {
 			return objectMapper.readValue(json, type);
 		} catch (JsonParseException e) {
+			throw new DevkitdocConnectorException(400, e);
+		} catch (JsonMappingException e) {
+			throw new DevkitdocConnectorException(400, e);
+		} catch (IOException e) {
+			throw new DevkitdocConnectorException(400, e);
+		}
+	}
+	
+	public String transformObjectToJson(Object value) throws DevkitdocConnectorException {
+		try {
+			return objectMapper.writeValueAsString(value);
+		} catch (JsonGenerationException e) {
 			throw new DevkitdocConnectorException(400, e);
 		} catch (JsonMappingException e) {
 			throw new DevkitdocConnectorException(400, e);

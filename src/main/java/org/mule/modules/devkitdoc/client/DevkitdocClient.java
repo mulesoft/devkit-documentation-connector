@@ -18,6 +18,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriBuilder;
 
 import org.apache.commons.lang.StringUtils;
+import org.codehaus.jackson.map.type.CollectionType;
 import org.codehaus.jackson.type.JavaType;
 import org.mule.api.annotations.param.MetaDataKeyParam;
 import org.mule.common.metadata.DefaultMetaData;
@@ -32,7 +33,7 @@ import org.mule.modules.devkitdoc.exception.DevkitdocConnectorException;
 import org.mule.modules.devkitdoc.exception.DevkitdocConnectorSessionException;
 import org.mule.modules.devkitdoc.model.DevkitdocMetadata;
 import org.mule.modules.devkitdoc.model.DevkitdocServiceDataType;
-import org.mule.modules.devkitdoc.transformer.TransformerUtils;
+import org.mule.modules.devkitdoc.transformer.DevkitdocTransformerUtils;
 
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
@@ -42,14 +43,14 @@ import com.sun.jersey.api.client.WebResource.Builder;
 public class DevkitdocClient implements IDevkitdocClientOperations {
 	
 	private Client jerseyClient;
-	private TransformerUtils transformerUtils;
+	private DevkitdocTransformerUtils transformerUtils;
 	private String host;
 	private String endpoint;
 	private String idField;
 	
 	public DevkitdocClient(String host, String endpoint) {
 		jerseyClient = new Client();
-		transformerUtils = new TransformerUtils();
+		transformerUtils = new DevkitdocTransformerUtils();
 		this.host = host;
 		this.endpoint = endpoint;
 		idField = "_id";
@@ -104,6 +105,10 @@ public class DevkitdocClient implements IDevkitdocClientOperations {
 		checkStatusResponse(clientResponse);
 		// Get the response body
 		String response = clientResponse.getEntity(String.class);
+		// If the response is empty, don't try the transformation
+		if (StringUtils.isEmpty(response)) {
+			return null;
+		}		
 		// Transform the JSON representation to the specified type
 		return transformerUtils.transformJsonToType(response, jType);
 	}
@@ -165,11 +170,19 @@ public class DevkitdocClient implements IDevkitdocClientOperations {
 				throw new DevkitdocConnectorException(400, String.format("Failed to create MetaData. The filed %s of the type %s does not have a type defined", key, type));
 			}
 			
-			PropertyCustomizableMetaDataBuilder<?> simpleField = dynObj.addSimpleField(key, DevkitdocServiceDataType.getMuleTypeFrom(fieldType));
+			DevkitdocServiceDataType devkitType = DevkitdocServiceDataType.getTypeFrom(fieldType);
+			PropertyCustomizableMetaDataBuilder<?> simpleField = null;
+			
+			if (DevkitdocServiceDataType.DATE.equals(devkitType)) {
+				// TODO: DATE type should be treated as a Date, for now is a String
+				simpleField = dynObj.addSimpleField(key, DevkitdocServiceDataType.getMuleTypeFrom(DevkitdocServiceDataType.STRING));
+			} else {
+				simpleField = dynObj.addSimpleField(key, DevkitdocServiceDataType.getMuleTypeFrom(devkitType));
+			}
 			
 			// Configure the abilities available for each filed if DSQL is used
 			simpleField
-				.isOrderByCapable(false) // TODO: The isOrderByCapable must be checked agains the index property of the metadata
+				.isOrderByCapable(false) // TODO: The isOrderByCapable must be checked against the index property of the metadata
 				.isSelectCapable(true)
 				.isWhereCapable(true);
 		}
@@ -177,11 +190,25 @@ public class DevkitdocClient implements IDevkitdocClientOperations {
 		return dynObj;
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
-	public List<Map<String, Object>> query(String entity, String jsonQuery) 
+	public List<Map<String, Object>> query(String jsonQuery) 
 			throws DevkitdocConnectorSessionException, DevkitdocConnectorException {
-		// TODO Auto-generated method stub
-		return null;
+		
+		UriBuilder uriBuilder = getBaseUriBuilder().path("/{endpoint}/query");
+		
+		URI uri = null;
+		if (StringUtils.isNotEmpty(jsonQuery)) {
+			uri = uriBuilder.queryParam("q", "{jsonQuery}").build(endpoint, jsonQuery);
+		} else {
+			uri = uriBuilder.build(endpoint);
+		}
+		
+		WebResource resource = getBaseWebResource(uri);
+		
+		CollectionType constructCollectionType = transformerUtils.getTypefactory().constructCollectionType(List.class, Map.class);
+		
+		return (List<Map<String, Object>>) getResponseMapped(List.class, constructCollectionType, getBuilder(resource).get(ClientResponse.class));
 	}
 
 	@SuppressWarnings("unchecked")

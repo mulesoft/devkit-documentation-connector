@@ -18,29 +18,36 @@ import java.util.List;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.mule.api.ConnectionException;
 import org.mule.common.metadata.DefaultDefinedMapMetaDataModel;
 import org.mule.common.metadata.DefaultMetaDataField;
+import org.mule.common.metadata.DefaultMetaDataKey;
 import org.mule.common.metadata.MetaData;
 import org.mule.common.metadata.MetaDataField;
 import org.mule.common.metadata.MetaDataKey;
+import org.mule.modules.devkitdoc.DevkitdocConnector;
 import org.mule.modules.devkitdoc.client.credentials.Credentials;
 import org.mule.modules.devkitdoc.client.credentials.CredentialsUtils;
 
-public class DevkitdocClientTest {
+public class DevkitdocMetadataTest {
 	
-	static private DevkitdocClient clients1;
+	static private DevkitdocConnector connector;
 	static private Credentials credentials;
+	static private String entity;
+	
 	
 	@BeforeClass
-	static public void staticInitialize() throws IllegalArgumentException, IOException, IllegalAccessException {
+	static public void staticInitialize() throws IllegalArgumentException, IOException, IllegalAccessException, ConnectionException {
 		credentials = new CredentialsUtils().readCredentials();
+		connector = new DevkitdocConnector();
+		connector.connect(credentials.getHost(), "bla", "ble");
 		
-		clients1 = new DevkitdocClient(credentials.getHost(), credentials.getClientPath());
+		entity = "employee";
 	}
 	
 	@Test
 	public void metadataKeysTest() {
-		List<MetaDataKey> metadataKeys = clients1.metadataKeys();
+		List<MetaDataKey> metadataKeys = connector.metadataKeys();
 		
 		assertNotNull(metadataKeys);
 		assertTrue(metadataKeys.size() > 0);
@@ -49,7 +56,7 @@ public class DevkitdocClientTest {
 	
 	@Test
 	public void metadataTest() {
-		MetaData metadata = clients1.metadata("employee");
+		MetaData metadata = connector.metadata(new DefaultMetaDataKey(entity, entity));
 		
 		assertNotNull(metadata);
 		assertEquals("MAP", metadata.getPayload().getDataType().toString());

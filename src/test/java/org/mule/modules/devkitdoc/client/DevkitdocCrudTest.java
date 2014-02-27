@@ -21,25 +21,30 @@ import java.util.Map;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.mule.api.ConnectionException;
+import org.mule.modules.devkitdoc.DevkitdocConnector;
 import org.mule.modules.devkitdoc.client.credentials.Credentials;
 import org.mule.modules.devkitdoc.client.credentials.CredentialsUtils;
 import org.mule.modules.devkitdoc.exception.DevkitdocConnectorException;
 
-public class DevkitdocClientCrudTest {
+public class DevkitdocCrudTest {
 	
-	private DevkitdocClient clients1;
+	private DevkitdocConnector connector;
 	private Credentials credentials;
 	private Map<String, Object> properties;
 	private String entity;
 	private String idField;
 	
 	@Before
-	public void initialize() throws IllegalArgumentException, IOException, IllegalAccessException {
+	public void initialize() throws IllegalArgumentException, IOException, IllegalAccessException, ConnectionException {
 		credentials = new CredentialsUtils().readCredentials();
-		clients1 = new DevkitdocClient(credentials.getHost(), credentials.getClientPath());
+		connector = new DevkitdocConnector();
+		connector.connect(credentials.getHost(), "bla", "ble");
 		
 		entity = "employee";
 		idField = "_id";
+		
+		// TODO: Query by email and remove if exists. Email is a unique field, so there can not be more than one entity with the same email address
 	}
 	
 	@After
@@ -47,7 +52,7 @@ public class DevkitdocClientCrudTest {
 		// If the properties is loaded
 		if (properties != null && properties.size() > 0) {
 			try {
-				clients1.delete(entity, properties);
+				connector.delete(entity, properties);
 			} catch (Throwable e) {}
 		}
 	}
@@ -64,7 +69,7 @@ public class DevkitdocClientCrudTest {
 		properties.put("job", "Cloud Connectors Dev");
 		
 		// Create ================================================================================================
-		properties = clients1.create(entity, properties);
+		properties = connector.create(entity, properties);
 		
 		assertNotNull(properties);
 		assertTrue(properties.size() > 0);
@@ -77,14 +82,14 @@ public class DevkitdocClientCrudTest {
 		modifyProperties.put(idField, properties.get(idField));
 		modifyProperties.put("firstname", "gustavious III");
 		
-		properties = clients1.update(entity, modifyProperties);
+		properties = connector.update(entity, modifyProperties);
 		
 		assertNotNull(properties);
 		assertTrue(properties.size() > 0);
 		assertTrue(properties.containsKey(idField));
 		
 		// Retrieve ==============================================================================================
-		properties = clients1.retrieve(entity, properties);
+		properties = connector.retrieve(entity, properties);
 		
 		assertNotNull(properties);
 		assertTrue(properties.size() > 0);
@@ -93,7 +98,7 @@ public class DevkitdocClientCrudTest {
 		assertEquals("alberola", properties.get("lastname"));
 		
 		// Delete ================================================================================================
-		properties = clients1.delete(entity, properties);
+		properties = connector.delete(entity, properties);
 		
 		assertNotNull(properties);
 		assertTrue(properties.size() > 0);
@@ -101,7 +106,7 @@ public class DevkitdocClientCrudTest {
 		
 		// Retrieve should fail ==================================================================================
 		try {
-			clients1.retrieve(entity, properties);
+			connector.retrieve(entity, properties);
 			fail("Retrieve of an unexistent entity should throw an exception");
 		} catch (DevkitdocConnectorException e) {
 			assertEquals(404, e.getStatusCode());

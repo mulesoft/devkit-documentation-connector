@@ -17,15 +17,15 @@ import java.util.Map;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.mule.modules.devkitdoc.transformer.TransformerUtils;
+import org.mule.modules.devkitdoc.transformer.DevkitdocTransformerUtils;
 
 public class TransformerUtilTest {
 	
-	private TransformerUtils transformerUtils;
+	private DevkitdocTransformerUtils transformerUtils;
 	
 	@Before
 	public void initialize() {
-		transformerUtils = new TransformerUtils();
+		transformerUtils = new DevkitdocTransformerUtils();
 	}
 	
 	@SuppressWarnings("unchecked")

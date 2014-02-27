@@ -37,7 +37,7 @@ public enum DevkitdocServiceDataType {
 			case BOOLEAN:
 				return DataType.BOOLEAN;
 			case DATE:
-				return DataType.DATE;
+				return DataType.DATE_TIME;
 			case NUMBER:
 				return DataType.DECIMAL;
 			case OBJECTID:
