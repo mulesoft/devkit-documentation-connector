@@ -40,7 +40,7 @@ public class DevkitdocMetadataTest {
 	static public void staticInitialize() throws IllegalArgumentException, IOException, IllegalAccessException, ConnectionException {
 		credentials = new CredentialsUtils().readCredentials();
 		connector = new DevkitdocConnector();
-		connector.connect(credentials.getHost(), "bla", "ble");
+		connector.connect(credentials.getHost());
 		
 		entity = "employee";
 	}

@@ -27,7 +27,6 @@ import org.mule.api.annotations.Query;
 import org.mule.api.annotations.QueryOperator;
 import org.mule.api.annotations.QueryTranslator;
 import org.mule.api.annotations.ValidateConnection;
-import org.mule.api.annotations.display.Password;
 import org.mule.api.annotations.param.ConnectionKey;
 import org.mule.api.annotations.param.Default;
 import org.mule.api.annotations.param.MetaDataKeyParam;
@@ -62,7 +61,7 @@ public class DevkitdocConnector
     }
 
     @Connect
-    public void connect(@ConnectionKey String host, @ConnectionKey String username, @ConnectionKey @Password String password) throws ConnectionException  {
+    public void connect(@ConnectionKey @Default("http://ec2-50-16-35-4.compute-1.amazonaws.com:8080") String host) throws ConnectionException  {
     	synchronized(connectionLock) {
     		if (!connected) {
     			// Initialize client

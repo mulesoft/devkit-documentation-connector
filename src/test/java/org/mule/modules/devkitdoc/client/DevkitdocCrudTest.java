@@ -39,7 +39,7 @@ public class DevkitdocCrudTest {
 	public void initialize() throws IllegalArgumentException, IOException, IllegalAccessException, ConnectionException {
 		credentials = new CredentialsUtils().readCredentials();
 		connector = new DevkitdocConnector();
-		connector.connect(credentials.getHost(), "bla", "ble");
+		connector.connect(credentials.getHost());
 		
 		entity = "employee";
 		idField = "_id";

@@ -31,8 +31,6 @@ import org.mule.common.query.dsql.parser.MuleDsqlParser;
 import org.mule.modules.devkitdoc.DevkitdocConnector;
 import org.mule.modules.devkitdoc.client.credentials.Credentials;
 import org.mule.modules.devkitdoc.client.credentials.CredentialsUtils;
-import org.mule.modules.devkitdoc.model.query.DevkitdocQuery;
-import org.mule.modules.devkitdoc.model.query.DevkitdocQuerySelectorComparisonType;
 
 public class DevkitdocDsqlTest {
 
@@ -52,7 +50,7 @@ public class DevkitdocDsqlTest {
 		listOfProperties = new LinkedList<Map<String, Object>>();
 		connector = new DevkitdocConnector();
 		
-		connector.connect(credentials.getHost(), "bla", "ble");
+		connector.connect(credentials.getHost());
 		
 		muleDsqlParser = new MuleDsqlParser();
 		

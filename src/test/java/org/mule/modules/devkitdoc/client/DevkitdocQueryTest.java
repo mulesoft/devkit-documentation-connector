@@ -49,7 +49,7 @@ public class DevkitdocQueryTest {
 		listOfProperties = new LinkedList<Map<String, Object>>();
 		connector = new DevkitdocConnector();
 		
-		connector.connect(credentials.getHost(), "bla", "ble");
+		connector.connect(credentials.getHost());
 		
 		entity = "employee";
 		idField = "_id";
